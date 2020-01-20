@@ -13,10 +13,10 @@ local prefabs =
 
 
 
-TUNING.ICE_SCYTHE.DAMAGE = TUNING.RUINS_BAT_DAMAGE * 0.75
-TUNING.ICE_SCYTHE.HIT_RANGE = TUNING.TOADSTOOL_SPOREBOMB_HIT_RANGE
-TUNING.ICE_SCYTHE.WALK_SPPED_MULT = TUNING.CANE_SPEED_MULT
-TUNING.ICE_SCYTHE.FREEZE_CHANCE = 0.2
+TUNING.ICE_SCYTHE.DAMAGE = TUNING.RUINS_BAT_DAMAGE * 0.5
+TUNING.ICE_SCYTHE.HIT_RANGE = TUNING.TOADSTOOL_SPOREBOMB_HIT_RANGE * 1.5
+TUNING.ICE_SCYTHE.WALK_SPPED_MULT = TUNING.CANE_SPEED_MULT * 1.3
+TUNING.ICE_SCYTHE.FREEZE_CHANCE = 0.3
 
 
 local function OnAttack(inst, attacker, target)
@@ -36,7 +36,7 @@ local function OnAttack(inst, attacker, target)
     local rand = math.random(0, 100)
 	if rand <= TUNING.ICE_SCYTHE.FREEZE_CHANCE * 100  then
         if target.components.freezable ~= nil then
-            target.components.freezable:AddColdness(20)
+            target.components.freezable:AddColdness(5)
             -- target.components.freezable:Freeze(time + math.random())
         end
 	end
@@ -79,7 +79,7 @@ local function SwingSpell(inst, attacker, target)
 
     local x, y, z = target.Transform:GetWorldPosition()
     local scale = Scale(target)
-    inst:DoTaskInTime(0, SpawnIceHit, x, y, z, scale)
+    inst:DoTaskInTime(0.2, SpawnIceHit, x, y, z, scale)
 end
 
 
@@ -123,8 +123,8 @@ local function fn()
     inst.components.inventoryitem.atlasname = "images/inventoryimages/ice_scythe.xml"
 
     inst:AddComponent("equippable")
-    inst.components.equippable:SetOnEquip( OnEquip )
-    inst.components.equippable:SetOnUnequip( OnUnequip )
+    inst.components.equippable:SetOnEquip(OnEquip)
+    inst.components.equippable:SetOnUnequip(OnUnequip)
     inst.components.equippable.walkspeedmult = TUNING.CANE_SPEED_MULT
 
     inst:AddTag("waterproofer")

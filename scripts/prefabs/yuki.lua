@@ -57,11 +57,11 @@ TUNING.YUKI.HEALTH_MAX = 300
 TUNING.YUKI.HUNGER_MAX = 225
 TUNING.YUKI.SANITY_MAX = 250
 TUNING.YUKI.SANITY_RATE_MULT = 1.4
-TUNING.YUKI.SANITY_NEG_AURA_ABSORB = 0.3
-TUNING.YUKI.MIN_TEMP = 10
+TUNING.YUKI.SANITY_NEG_AURA_ABSORB = 0.1
+TUNING.YUKI.MIN_TEMP = 5
 TUNING.YUKI.MAX_TEMP = 100
 TUNING.YUKI.OVERHEAT_TEMP = 40
-TUNING.YUKI.START_TEMP = 15
+TUNING.YUKI.START_TEMP = 5
 TUNING.YUKI.COLD_RESISTANCE = 1000
 TUNING.YUKI.HUNGER_HURT_RATE = 1.2
 TUNING.YUKI.DIET = {FOODTYPE.VEGGIE, FOODTYPE.DRINK, FOODTYPE.SEEDS, FOODTYPE.GENERIC, FOODTYPE.GOODIES}
@@ -71,14 +71,14 @@ TUNING.YUKI.DIET = {FOODTYPE.VEGGIE, FOODTYPE.DRINK, FOODTYPE.SEEDS, FOODTYPE.GE
 TUNING.YUKI.HUNGER_RATE = TUNING.WILSON_HUNGER_RATE * 1.2
 TUNING.YUKI.WALK_SPEED = 4
 TUNING.YUKI.RUN_SPEED = 6
-TUNING.YUKI.HEALTH_ABSORB = 0.25 -- 1 means 100% absorb: no harm
+TUNING.YUKI.HEALTH_ABSORB = 0.4 -- 1 means 100% absorb: no harm
 TUNING.YUKI.FIRE_DAMAGE_SCALE = 1.1 -- 1 means 100% damage: full damage
 TUNING.YUKI.HIT_RANGE = 5
 TUNING.YUKI.HEATER_TEMP = -20
 TUNING.YUKI.DAMAGE_MULTIPLIER = TUNING.WENDY_DAMAGE_MULT * 2 -- Calc: 0.75 * 2 = 1.5
 
 TUNING.YUKI.HARM_BACK_RATE = 0.6
-TUNING.YUKI.HARM_BACK_CHANCE = 0.6
+TUNING.YUKI.HARM_BACK_CHANCE = 0.7
 TUNING.YUKI.AREA_FREEZE_CHANCE = 0.2
 TUNING.YUKI.AREA_FREEZE_TIME = 6
 TUNING.YUKI.AREA_FREEZE_RANGE = 6
@@ -205,9 +205,9 @@ local function SanityFn(inst)
 	elseif TheWorld.state.issummer then 
 			return TUNING.YUKI.SANITY_SUMMER
 	elseif inst.components.temperature.current > 25 then
-		return TUNING.DAPPERNESS_SMALL * -1.5
+		return TUNING.DAPPERNESS_SMALL * -4
 	else
-		return 0
+		return TUNING.DAPPERNESS_SMALL * -2
 	end
 end
 
@@ -240,7 +240,7 @@ local function OnAttacked(inst, data)
 		end
 
 		if data.attacker.components.freezable ~= nil then
-			data.attacker.components.freezable:AddColdness(data.attacker.components.freezable.resistance * 0.5)
+			data.attacker.components.freezable:AddColdness(data.attacker.components.freezable.resistance * 0.3)
 			
 			if not data.attacker.components.freezable:IsFrozen() then
 				local x, y, z = data.attacker.Transform:GetWorldPosition()
@@ -259,32 +259,53 @@ local function OnHitOther(inst, data)
 	if not inst.components.health:IsDead() then
 
 		-- Return sanity
-		inst.components.sanity:DoDelta(3)
+		inst.components.sanity:DoDelta(2)
 		
 		-- Initialize loot for target
 		if data.target.components.lootdropper.loot == nil then
 			data.target.components.lootdropper.loot = {}
 		end
 
-		local rand = math.random(0, 15)
-        if rand == 2 or rand == 4 or rand == 6 or rand == 8 then-- 1/10 chance to get lightbulb on this hit
-			table.insert(data.target.components.lootdropper.loot, "lightbulb")
-
-		elseif rand == 0 or rand == 15 and (data.target.prefab == "dragonfly") then
-			table.insert(data.target.components.lootdropper.loot, "watermelonicle")
-
-		elseif rand == 10 and (TheWorld.state.issummer and data.target.components.health.maxhealth > 800) then
-			table.insert(data.target.components.lootdropper.loot, "coconut")
-
-		elseif rand == 12 and (TheWorld.state.issummer or TheWorld.state.issnowcovered) then
+		local rand = math.random(0, 50)
+        if rand <= 4 then -- 5/50 chance to get lightbulb on this hit
+            table.insert(data.target.components.lootdropper.loot, "lightbulb")
+            
+		elseif rand <= 10 and not (TheWorld.state.iswinter or TheWorld.state.isspring) then
 			table.insert(data.target.components.lootdropper.loot, "ice")
 
-		elseif rand == 14 and (TheWorld.state.issummer and data.target.components.health.maxhealth > 400) then
-			table.insert(data.target.components.lootdropper.loot, "icecream")
-		elseif rand == 14 and (TheWorld.state.issummer and data.target.components.health.maxhealth > 800) then
-			table.insert(data.target.components.lootdropper.loot, "watermelon")
-		elseif rand == 14 and (TheWorld.state.issummer and data.target.components.health.maxhealth > 1200) then
-			table.insert(data.target.components.lootdropper.loot, "watermelonicle")
+		elseif (rand == 0 or rand == 10) and (data.target.prefab == "dragonfly") then
+            table.insert(data.target.components.lootdropper.loot, "icecream")
+            
+        elseif rand == 14 and TheWorld.state.iswinter then
+            table.insert(data.target.components.lootdropper.loot, "green_cap")
+            
+        elseif rand == 16 and TheWorld.state.issummer then
+            table.insert(data.target.components.lootdropper.loot, "blue_cap")
+
+        elseif rand == 18 and TheWorld.state.iswinter then
+            table.insert(data.target.components.lootdropper.loot, "red_cap")
+            
+        elseif rand == 20 and TheWorld.state.isautumn then
+            table.insert(data.target.components.lootdropper.loot, "pomegranate")
+            
+        elseif rand == 22 and (TheWorld.state.isspring or TheWorld.state.iswinter) then
+            table.insert(data.target.components.lootdropper.loot, "goatmilk")
+            
+        elseif rand == 24 and TheWorld.state.isautumn then
+			table.insert(data.target.components.lootdropper.loot, "butter")
+
+		elseif rand == 26 and (TheWorld.state.issummer and data.target.components.health.maxhealth > 600) then
+			table.insert(data.target.components.lootdropper.loot, "coconut")
+
+		elseif rand == 30 and (TheWorld.state.issummer and data.target.components.health.maxhealth > 1600) then
+            table.insert(data.target.components.lootdropper.loot, "watermelon")
+            
+		elseif rand == 32 and (TheWorld.state.issummer and data.target.components.health.maxhealth > 2000) then
+            table.insert(data.target.components.lootdropper.loot, "watermelonicle")
+            
+		elseif rand == 34 and (TheWorld.state.issummer and data.target.components.health.maxhealth > 2600) then
+            table.insert(data.target.components.lootdropper.loot, "icecream")
+            
 		end
 
 		print(rand)
@@ -301,7 +322,6 @@ local common_postinit = function(inst)
         inst.MiniMapEntity:SetIcon("yuki.tex")
         
         inst:AddTag("fridge")
-        inst:AddTag("boomerangbuilder")
         inst:RemoveTag("scarytoprey")
         inst:AddTag("yuki")
         inst:AddTag("snowflake")
@@ -351,9 +371,9 @@ local master_postinit = function(inst)
         -- Night light
         inst.entity:AddLight()
         inst.Light:Enable(true)
-        inst.Light:SetRadius(3.5)
+        inst.Light:SetRadius(4)
         inst.Light:SetFalloff(0.7)
-        inst.Light:SetIntensity(0.55)
+        inst.Light:SetIntensity(0.6)
         inst.Light:SetColour(120 / 255, 170 / 255, 102 / 255)
         
         
